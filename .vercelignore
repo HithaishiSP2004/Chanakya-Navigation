@@ -1,0 +1,2 @@
+# Ignore backend directory from Vercel build detection
+backend/
