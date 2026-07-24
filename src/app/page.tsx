@@ -14,6 +14,7 @@ import { NavGuidanceFooter } from '@/features/guidance/NavGuidanceFooter';
 import { ArrivalCelebrationCard } from '@/features/guidance/ArrivalCelebrationCard';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { FloatingActionHub } from '@/components/ui/FloatingActionHub';
+import { PWAInstallBanner } from '@/components/ui/PWAInstallBanner';
 import { useUIStore, ActiveTab } from '@/stores/useUIStore';
 import { useNavigationStore } from '@/stores/useNavigationStore';
 import { useGPSWatcher } from '@/hooks/useGPSWatcher';
@@ -180,6 +181,7 @@ export default function MainPage() {
 
       {/* ── GPS PERMISSION BANNER ── */}
       <LocationPermissionBanner />
+      <PWAInstallBanner />
     </main>
   );
 }

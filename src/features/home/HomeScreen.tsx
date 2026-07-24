@@ -139,7 +139,6 @@ export const HomeScreen: React.FC = () => {
   const { favoriteIds, hydrate } = useFavoritesStore();
   const { lastUnfinishedVenue, history, clearUnfinishedVenue } = useJourneyStore();
 
-  const [visitorRole, setVisitorRole] = useState<'VISITOR' | 'STUDENT' | 'GUEST'>('VISITOR');
   const [isVoiceOpen, setIsVoiceOpen] = useState(false);
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
   const [isQROpen, setIsQROpen] = useState(false);
@@ -269,37 +268,31 @@ export const HomeScreen: React.FC = () => {
         </div>
       )}
 
-      {/* Visitor Context Switcher Pills */}
-      <div className="flex items-center justify-between p-1 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 text-xs font-bold">
+      {/* Quick Actions Row — replaces non-functional role tabs */}
+      <div className="grid grid-cols-2 gap-2">
         <button
-          onClick={() => setVisitorRole('VISITOR')}
-          className={`flex-1 py-1.5 px-2 rounded-xl transition-all ${
-            visitorRole === 'VISITOR'
-              ? 'bg-emerald-600 text-white shadow-md'
-              : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-          }`}
+          onClick={() => setSheetSnapPoint(0.92)}
+          className="flex items-center gap-2.5 p-3 rounded-2xl bg-emerald-600/90 hover:bg-emerald-500 active:scale-95 transition-all text-white shadow-md"
         >
-          Admissions & Visitor
+          <div className="p-1.5 rounded-xl bg-white/20">
+            <MapPin className="w-4 h-4 text-white" />
+          </div>
+          <div className="text-left">
+            <div className="text-xs font-bold leading-none">Find a Place</div>
+            <div className="text-[10px] text-emerald-100 mt-0.5">Search campus</div>
+          </div>
         </button>
         <button
-          onClick={() => setVisitorRole('STUDENT')}
-          className={`flex-1 py-1.5 px-2 rounded-xl transition-all ${
-            visitorRole === 'STUDENT'
-              ? 'bg-emerald-600 text-white shadow-md'
-              : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-          }`}
+          onClick={() => setIsQROpen(true)}
+          className="flex items-center gap-2.5 p-3 rounded-2xl bg-slate-800 hover:bg-slate-700 active:scale-95 transition-all text-white border border-slate-700 shadow-md"
         >
-          Student & Faculty
-        </button>
-        <button
-          onClick={() => setVisitorRole('GUEST')}
-          className={`flex-1 py-1.5 px-2 rounded-xl transition-all ${
-            visitorRole === 'GUEST'
-              ? 'bg-emerald-600 text-white shadow-md'
-              : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-          }`}
-        >
-          Guest & Events
+          <div className="p-1.5 rounded-xl bg-slate-700">
+            <QrCode className="w-4 h-4 text-emerald-400" />
+          </div>
+          <div className="text-left">
+            <div className="text-xs font-bold leading-none">Scan QR</div>
+            <div className="text-[10px] text-slate-400 mt-0.5">Poster / sign</div>
+          </div>
         </button>
       </div>
 

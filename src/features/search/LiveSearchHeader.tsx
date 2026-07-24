@@ -117,7 +117,11 @@ export const LiveSearchHeader: React.FC = () => {
         {categories.map((cat) => (
           <button
             key={cat.id}
-            onClick={() => setSelectedCategory(cat.id)}
+            onClick={() => {
+              setSelectedCategory(cat.id);
+              // Auto-open results when a non-ALL category is selected
+              if (cat.id !== 'ALL') setIsFocused(true);
+            }}
             className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all ${
               selectedCategory === cat.id
                 ? 'bg-emerald-700 text-white shadow-md dark:bg-emerald-600'

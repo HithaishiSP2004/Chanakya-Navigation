@@ -138,7 +138,7 @@ export const PlaceDetailSheet: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col gap-4 pt-1 pb-6">
+    <div className="flex flex-col gap-0 pt-1">
       {/* Photo Lightbox Modal */}
       <PhotoLightboxModal
         isOpen={isLightboxOpen}
@@ -150,14 +150,53 @@ export const PlaceDetailSheet: React.FC = () => {
         captions={photoCaptions}
       />
 
+      {/* ── Sticky Navigation CTA Footer (always visible) ─────── */}
+      <div className="sticky bottom-0 left-0 right-0 z-10 bg-slate-950/97 backdrop-blur-xl border-t border-slate-800/60 px-4 py-3 -mx-4 mt-auto">
+        {/* GPS Warning */}
+        {userLocation && accuracyMeters > 100 && (
+          <div className="flex items-center gap-2 mb-2 px-3 py-1.5 rounded-xl bg-amber-950/60 border border-amber-600/40 text-amber-300 text-[10px]">
+            <span className="relative flex shrink-0">
+              <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-amber-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+            </span>
+            <span><strong>GPS ±{Math.round(accuracyMeters)}m</strong> — Route starts from campus gate</span>
+          </div>
+        )}
+        <div className="grid grid-cols-3 gap-2">
+          <Button
+            variant="primary"
+            onClick={handleCalculateRoute}
+            disabled={isCalculatingRoute}
+            className="col-span-2 py-3.5 text-sm font-bold shadow-lg"
+            icon={isCalculatingRoute
+              ? <Loader2 className="w-4 h-4 animate-spin" />
+              : <Navigation className="w-4 h-4 fill-white" />
+            }
+          >
+            {isCalculatingRoute ? 'Calculating...' : 'Start Navigation'}
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={handleShare}
+            className="col-span-1 py-3.5"
+            icon={<Share2 className="w-4 h-4" />}
+          >
+            {copiedShare ? 'Copied!' : 'Share'}
+          </Button>
+        </div>
+      </div>
+
+      {/* ── Scrollable content ───────────────────────────────────── */}
+      <div className="flex flex-col gap-4 pb-4 overflow-y-auto">
+
       {/* Top Header & Back Action */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pt-1">
         <button
           onClick={handleBack}
           className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
         >
           <ChevronLeft className="w-4 h-4" />
-          <span>Back to Search</span>
+          <span>Back</span>
         </button>
         <div className="flex items-center gap-2">
           {selectedVenue.status === 'OPEN' && (
@@ -386,44 +425,7 @@ export const PlaceDetailSheet: React.FC = () => {
         </div>
       )}
 
-
-      {/* GPS Accuracy Warning — shown when signal is too weak for precise routing */}
-      {userLocation && accuracyMeters > 100 && (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-950/60 border border-amber-600/50 text-amber-300 text-[11px]">
-          <span className="relative flex shrink-0">
-            <span className="animate-ping absolute inline-flex h-2.5 w-2.5 rounded-full bg-amber-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
-          </span>
-          <span>
-            <strong>GPS acquiring</strong> (±{Math.round(accuracyMeters)}m) — Route will start from nearest walkway. Step outside for better accuracy.
-          </span>
-        </div>
-      )}
-
-      {/* CTA Buttons */}
-      <div className="grid grid-cols-3 gap-2.5">
-        <Button
-          variant="primary"
-          onClick={handleCalculateRoute}
-          disabled={isCalculatingRoute}
-          className="col-span-2 shadow-lg py-3.5"
-          icon={isCalculatingRoute
-            ? <Loader2 className="w-4 h-4 animate-spin" />
-            : <Navigation className="w-4 h-4 fill-white" />
-          }
-        >
-          {isCalculatingRoute ? 'Calculating Route...' : 'Start Navigation'}
-        </Button>
-
-        <Button
-          variant="secondary"
-          onClick={handleShare}
-          className="col-span-1 py-3.5"
-          icon={<Share2 className="w-4 h-4" />}
-        >
-          {copiedShare ? 'Copied!' : 'Share'}
-        </Button>
-      </div>
+      </div>{/* end scrollable */}
     </div>
   );
 };

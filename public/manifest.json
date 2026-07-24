@@ -1,24 +1,41 @@
 {
-  "name": "Chanakya Navigate — Official Smart Campus Guide",
+  "name": "Chanakya Navigate — Smart Campus Guide",
   "short_name": "Chanakya Nav",
-  "description": "Instant spatial navigation and digital campus handbook for Chanakya University.",
-  "start_url": "/",
+  "description": "Official digital navigation and campus handbook for Chanakya University, Devanahalli. Find any room, building, or facility with turn-by-turn campus walking directions.",
+  "start_url": "/?source=pwa",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#000000",
-  "theme_color": "#0D5C3A",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "orientation": "portrait-primary",
+  "background_color": "#020617",
+  "theme_color": "#059669",
+  "prefer_related_applications": false,
+  "categories": ["navigation", "education", "utilities"],
+  "lang": "en-IN",
+  "scope": "/",
   "icons": [
     {
       "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "shortcuts": [
@@ -26,13 +43,31 @@
       "name": "Navigate Campus",
       "short_name": "Navigate",
       "description": "Open campus navigation map",
-      "url": "/?tab=navigate"
+      "url": "/?tab=navigate&source=shortcut",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Explore Guide",
-      "short_name": "Explore",
-      "description": "Open campus handbook directory",
-      "url": "/?tab=explore"
+      "name": "Campus Directory",
+      "short_name": "Directory",
+      "description": "Browse all campus buildings and facilities",
+      "url": "/?tab=explore&source=shortcut",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/images/venues/admin-block-new-0.jpeg",
+      "sizes": "1280x720",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "Chanakya University Administrative Block"
+    },
+    {
+      "src": "/images/venues/admin-block-new-1.jpeg",
+      "sizes": "540x720",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Campus Navigation Map"
     }
   ]
 }
