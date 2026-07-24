@@ -1,0 +1,38 @@
+{
+  "name": "Chanakya Navigate — Official Smart Campus Guide",
+  "short_name": "Chanakya Nav",
+  "description": "Instant spatial navigation and digital campus handbook for Chanakya University.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#0D5C3A",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Navigate Campus",
+      "short_name": "Navigate",
+      "description": "Open campus navigation map",
+      "url": "/?tab=navigate"
+    },
+    {
+      "name": "Explore Guide",
+      "short_name": "Explore",
+      "description": "Open campus handbook directory",
+      "url": "/?tab=explore"
+    }
+  ]
+}

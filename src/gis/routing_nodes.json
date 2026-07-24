@@ -1,0 +1,15 @@
+[
+  { "id": "node-gate-in",   "name": "Main Gate IN (Entry)",               "type": "BUILDING_ENTRY", "coordinate": { "lat": 13.220265, "lng": 77.754062 } },
+  { "id": "node-gate-out",  "name": "Main Gate OUT (Exit)",               "type": "BUILDING_ENTRY", "coordinate": { "lat": 13.220195, "lng": 77.754191 } },
+  { "id": "node-road-mid",  "name": "Main Entrance Road Waypoint",        "type": "JUNCTION",       "coordinate": { "lat": 13.220800, "lng": 77.754600 } },
+  { "id": "node-gate-05",   "name": "Gate 5 Promenade Entrance",          "type": "BUILDING_ENTRY", "coordinate": { "lat": 13.221360, "lng": 77.755170 } },
+  { "id": "node-prom-south","name": "Promenade Circle South-West Curve",  "type": "JUNCTION",       "coordinate": { "lat": 13.221850, "lng": 77.755250 } },
+  { "id": "node-admin-main","name": "Admin Block Main Promenade Node",    "type": "WALKWAY",        "coordinate": { "lat": 13.222172, "lng": 77.755378 } },
+  { "id": "node-admis-01",  "name": "Admissions Room G-02 Node",          "type": "BUILDING_ENTRY", "coordinate": { "lat": 13.222065, "lng": 77.755373 } },
+  { "id": "node-acad-02",   "name": "Academic Block 2 Node",              "type": "WALKWAY",        "coordinate": { "lat": 13.223344, "lng": 77.755987 } },
+  { "id": "node-food-01",   "name": "Chanakya Food Court Walkway Node",   "type": "WALKWAY",        "coordinate": { "lat": 13.224806, "lng": 77.757239 } },
+  { "id": "node-sports-01", "name": "Indoor Sports Complex Node",         "type": "WALKWAY",        "coordinate": { "lat": 13.224684, "lng": 77.757135 } },
+  { "id": "node-cricket-01","name": "Cricket Stadium & Track Node",      "type": "WALKWAY",        "coordinate": { "lat": 13.228536, "lng": 77.757782 } },
+  { "id": "node-hostel-01", "name": "Student Hostels Node",               "type": "BUILDING_ENTRY", "coordinate": { "lat": 13.224615, "lng": 77.758824 } },
+  { "id": "node-clinic-01", "name": "Health Center Clinic Node",          "type": "BUILDING_ENTRY", "coordinate": { "lat": 13.224583, "lng": 77.759046 } }
+]

@@ -1,0 +1,14 @@
+[
+  { "id": "edge-gate-in-road",   "startNodeId": "node-gate-in",    "endNodeId": "node-road-mid",   "distanceMeters": 80,  "isAccessible": true },
+  { "id": "edge-gate-out-road",  "startNodeId": "node-gate-out",   "endNodeId": "node-road-mid",   "distanceMeters": 80,  "isAccessible": true },
+  { "id": "edge-road-gate5",     "startNodeId": "node-road-mid",   "endNodeId": "node-gate-05",    "distanceMeters": 85,  "isAccessible": true },
+  { "id": "edge-gate5-prom",     "startNodeId": "node-gate-05",    "endNodeId": "node-prom-south", "distanceMeters": 60,  "isAccessible": true },
+  { "id": "edge-prom-admin",     "startNodeId": "node-prom-south", "endNodeId": "node-admin-main","distanceMeters": 45,  "isAccessible": true },
+  { "id": "edge-admin-admis",    "startNodeId": "node-admin-main", "endNodeId": "node-admis-01",  "distanceMeters": 15,  "isAccessible": true },
+  { "id": "edge-admin-acad",     "startNodeId": "node-admin-main", "endNodeId": "node-acad-02",   "distanceMeters": 140, "isAccessible": true },
+  { "id": "edge-acad-food",      "startNodeId": "node-acad-02",    "endNodeId": "node-food-01",   "distanceMeters": 170, "isAccessible": true },
+  { "id": "edge-food-sports",    "startNodeId": "node-food-01",    "endNodeId": "node-sports-01", "distanceMeters": 25,  "isAccessible": true },
+  { "id": "edge-sports-cricket", "startNodeId": "node-sports-01",  "endNodeId": "node-cricket-01","distanceMeters": 420, "isAccessible": true },
+  { "id": "edge-food-hostel",    "startNodeId": "node-food-01",    "endNodeId": "node-hostel-01", "distanceMeters": 180, "isAccessible": true },
+  { "id": "edge-hostel-clinic",  "startNodeId": "node-hostel-01",  "endNodeId": "node-clinic-01", "distanceMeters": 25,  "isAccessible": true }
+]

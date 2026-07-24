@@ -1,0 +1,31 @@
+# Dependencies
+/node_modules
+/.pnpm-store
+
+# Next.js build output
+/.next/
+/out/
+/build
+/dist
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Environment variables & secrets (CRITICAL: DO NOT COMMIT REAL KEYS)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Internal scratch / working directories & logs
+/scratch
+/knowledge
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS metadata
+.DS_Store
+Thumbs.db

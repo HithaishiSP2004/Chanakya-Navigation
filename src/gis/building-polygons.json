@@ -1,0 +1,129 @@
+[
+  {
+    "id": "bldg-admin-01",
+    "code": "ADMIN",
+    "name": "Dr. Sita Ram Jindal Administrative Block",
+    "zone": "ADMINISTRATIVE",
+    "version": "1.0.2",
+    "lastUpdated": "2026-07-23",
+    "isEmergencyAssemblyPoint": true,
+    "isNetZeroFacility": true,
+    "polygon": [
+      { "lat": 13.2218, "lng": 77.7548 },
+      { "lat": 13.2224, "lng": 77.7548 },
+      { "lat": 13.2224, "lng": 77.7556 },
+      { "lat": 13.2218, "lng": 77.7556 }
+    ],
+    "centroid": { "lat": 13.222076, "lng": 77.755200 },
+    "entrances": [
+      {
+        "id": "ent-admin-main",
+        "name": "Main Entrance & Reception Desk",
+        "type": "MAIN",
+        "coordinate": { "lat": 13.222172, "lng": 77.755378 },
+        "associatedNodeId": "node-vista-02",
+        "landmarkGuidance": "Glass portico facing North Promenade",
+        "securityLevel": "STANDARD"
+      },
+      {
+        "id": "ent-admin-admissions",
+        "name": "Office of Admissions (Room G-02)",
+        "type": "WHEELCHAIR",
+        "coordinate": { "lat": 13.222065, "lng": 77.755373 },
+        "associatedNodeId": "node-vista-02",
+        "landmarkGuidance": "Paved accessible ramp on right wing",
+        "securityLevel": "PUBLIC"
+      }
+    ],
+    "heroImage": "/images/placeholders/building.svg",
+    "thumbnailImage": "/images/placeholders/building.svg",
+    "description": "Central Administrative Hub, Office of Admissions, Fee Payment Desks, Registrar, Vice-Chancellor Suite, and Reception Desk.",
+    "officialWebLink": "https://chanakyauniversity.edu.in/administration/"
+  },
+  {
+    "id": "bldg-acad-02",
+    "code": "ACAD-2",
+    "name": "Sudha & Kris Gopalakrishnan Academic Block",
+    "zone": "ACADEMIC",
+    "version": "1.0.2",
+    "lastUpdated": "2026-07-23",
+    "isNetZeroFacility": true,
+    "polygon": [
+      { "lat": 13.2213, "lng": 77.7554 },
+      { "lat": 13.2220, "lng": 77.7554 },
+      { "lat": 13.2220, "lng": 77.7562 },
+      { "lat": 13.2213, "lng": 77.7562 }
+    ],
+    "centroid": { "lat": 13.22165, "lng": 77.7558 },
+    "entrances": [
+      {
+        "id": "ent-acad-main",
+        "name": "Academic Main Portico",
+        "type": "MAIN",
+        "coordinate": { "lat": 13.2213, "lng": 77.7558 },
+        "associatedNodeId": "node-vista-04",
+        "landmarkGuidance": "Main academic atrium entrance"
+      }
+    ],
+    "heroImage": "/images/placeholders/building.svg",
+    "thumbnailImage": "/images/placeholders/building.svg",
+    "description": "340,000 sq. ft. State-of-the-Art Academic Block housing 6 Schools, 70+ Classrooms, Dr. K. Kasturirangan Auditorium, and Research Labs.",
+    "officialWebLink": "https://chanakyauniversity.edu.in/schools/"
+  },
+  {
+    "id": "bldg-hostel-03",
+    "code": "HOSTEL",
+    "name": "Smt. Vidya Devi Jindal Hostel Block",
+    "zone": "RESIDENTIAL",
+    "version": "1.0.2",
+    "lastUpdated": "2026-07-23",
+    "polygon": [
+      { "lat": 13.2208, "lng": 77.7558 },
+      { "lat": 13.2215, "lng": 77.7558 },
+      { "lat": 13.2215, "lng": 77.7566 },
+      { "lat": 13.2208, "lng": 77.7566 }
+    ],
+    "centroid": { "lat": 13.22115, "lng": 77.7562 },
+    "entrances": [
+      {
+        "id": "ent-hostel-main",
+        "name": "Hostel Security Gate",
+        "type": "MAIN",
+        "coordinate": { "lat": 13.2208, "lng": 77.7562 },
+        "associatedNodeId": "node-res-01"
+      }
+    ],
+    "heroImage": "/images/placeholders/building.svg",
+    "thumbnailImage": "/images/placeholders/building.svg",
+    "description": "Secure Student Housing Block with 24/7 Security, Common Study Lounges, and Student Recreation Rooms.",
+    "officialWebLink": "https://chanakyauniversity.edu.in/hostels/"
+  },
+  {
+    "id": "bldg-food-04",
+    "code": "FOOD-COURT",
+    "name": "Sri OP Jindal Food Court & Dining Plaza",
+    "zone": "FOOD",
+    "version": "1.0.2",
+    "lastUpdated": "2026-07-23",
+    "polygon": [
+      { "lat": 13.2230, "lng": 77.7545 },
+      { "lat": 13.2236, "lng": 77.7545 },
+      { "lat": 13.2236, "lng": 77.7552 },
+      { "lat": 13.2230, "lng": 77.7552 }
+    ],
+    "centroid": { "lat": 13.2233, "lng": 77.75485 },
+    "entrances": [
+      {
+        "id": "ent-food-main",
+        "name": "Food Court Main Plaza Entrance",
+        "type": "MAIN",
+        "coordinate": { "lat": 13.2230, "lng": 77.75485 },
+        "associatedNodeId": "node-res-02"
+      }
+    ],
+    "heroImage": "/images/placeholders/building.svg",
+    "thumbnailImage": "/images/placeholders/building.svg",
+    "description": "Primary Student & Community Dining Facility serving wholesome vegetarian meals daily.",
+    "officialWebLink": "https://chanakyauniversity.edu.in/dining/"
+  }
+]
