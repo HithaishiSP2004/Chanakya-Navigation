@@ -59,7 +59,7 @@ export const GISLayerControls: React.FC<GISLayerControlsProps> = ({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-12 z-50 w-72 p-3 rounded-2xl bg-slate-950/98 backdrop-blur-2xl border border-slate-800 shadow-2xl flex flex-col gap-2.5 text-xs animate-fade-in">
+        <div className="absolute right-0 bottom-full mb-2 z-50 w-72 p-3 rounded-2xl bg-slate-950/98 backdrop-blur-2xl border border-slate-800 shadow-2xl flex flex-col gap-2.5 text-xs animate-fade-in max-h-[70vh] overflow-y-auto">
           <div className="flex items-center justify-between pb-2 border-b border-slate-800">
             <div className="flex items-center gap-1.5 font-bold text-slate-100">
               <Layers className="w-4 h-4 text-emerald-400" />

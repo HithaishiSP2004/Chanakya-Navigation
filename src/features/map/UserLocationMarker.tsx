@@ -30,8 +30,14 @@ export const UserLocationMarker: React.FC = () => {
   } = useGPSStore();
   const { mode } = useNavigationStore();
 
-  // Only hide if no permission or no position received yet
+  // ── Guard: no permission → never show ──────────────────────────
   if (!userLocation || !isPermissionGranted) return null;
+
+  // ── Don't render when GPS is purely network/IP-based (>200m) ───
+  // At that accuracy, the dot could be 2km off-campus and confuse the user.
+  // Google Maps also doesn't position the blue dot when accuracy is this bad.
+  // We still show the blue dot as soon as real GPS starts locking in (<200m).
+  if (accuracyMeters > 200) return null;
 
   const position = { lat: userLocation.lat, lng: userLocation.lng };
   const isNavigating = mode === 'NAVIGATING';
