@@ -8,101 +8,82 @@ import { useNavigationStore } from '@/stores/useNavigationStore';
 /**
  * UserLocationMarker
  *
- * Rendering rules:
- * - accuracyMeters > 80m: Show "acquiring GPS" pulsing ring only (no blue dot)
- *   → Prevents showing a misleading dot 100m from the real position
- * - accuracyMeters ≤ 80m: Show full blue dot + accuracy circle + heading cone
- * - signalQuality drives dot color: blue (excellent), green (good), amber (poor)
+ * Always shows the blue dot as soon as ANY GPS position is available.
+ * The accuracy circle scales to reflect signal quality — just like Google Maps.
+ *
+ * Signal tiers:
+ *  ≤ 10m  → EXCELLENT  — small tight blue dot, tiny ring
+ *  ≤ 30m  → GOOD       — standard blue dot, small ring
+ *  ≤ 100m → FAIR       — amber dot, medium ring
+ *  > 100m → POOR       — grey dot, large translucent ring + "Approximate" label
+ *
+ * The dot is NEVER hidden for accuracy reasons — only hidden when
+ * permission is not granted or no position has been received yet.
  */
-
-const MAX_DISPLAY_ACCURACY_METERS = 80;
-
 export const UserLocationMarker: React.FC = () => {
   const {
     userLocation,
     heading,
     accuracyMeters,
     isPermissionGranted,
-    signalQuality,
     isWalking,
   } = useGPSStore();
   const { mode } = useNavigationStore();
 
+  // Only hide if no permission or no position received yet
   if (!userLocation || !isPermissionGranted) return null;
 
   const position = { lat: userLocation.lat, lng: userLocation.lng };
   const isNavigating = mode === 'NAVIGATING';
-  const isWarmingUp = accuracyMeters > MAX_DISPLAY_ACCURACY_METERS;
 
-  // Signal quality colors
+  // ── Signal tier ──────────────────────────────────────────────────
+  const tier =
+    accuracyMeters <= 10  ? 'EXCELLENT' :
+    accuracyMeters <= 30  ? 'GOOD'      :
+    accuracyMeters <= 100 ? 'FAIR'      :
+                            'POOR';
+
   const dotColor =
-    signalQuality === 'EXCELLENT'
-      ? '#3b82f6'  // blue-500
-      : signalQuality === 'GOOD'
-      ? '#22c55e'  // green-500
-      : '#f59e0b'; // amber — weak GPS
+    tier === 'EXCELLENT' ? '#3b82f6' :  // blue-500
+    tier === 'GOOD'      ? '#22c55e' :  // green-500
+    tier === 'FAIR'      ? '#f59e0b' :  // amber-500
+                           '#94a3b8';   // slate-400 (poor/network location)
 
-  // Accuracy radius circle size: 1m ≈ 1.5px at zoom 18, capped for readability
-  const accuracyCircleSize = Math.min(Math.max(accuracyMeters * 1.2, 36), 160);
+  const isApproximate = tier === 'POOR'; // > 100m accuracy
 
-  // ── Warming-up state: show a "searching" spinner ring only ────────
-  if (isWarmingUp) {
-    return (
-      <AdvancedMarker position={position} zIndex={200}>
-        <div
-          className="relative flex items-center justify-center pointer-events-none"
-          style={{ width: 56, height: 56 }}
-        >
-          {/* Slow pulsing outer ring — "acquiring GPS" indicator */}
-          <div
-            className="absolute rounded-full animate-ping"
-            style={{
-              width: 44,
-              height: 44,
-              background: `#94a3b820`,
-              border: `2px solid #94a3b870`,
-              animationDuration: '2.5s',
-            }}
-          />
-          {/* Static inner ring */}
-          <div
-            className="absolute rounded-full border-2 border-dashed border-slate-500/60"
-            style={{ width: 28, height: 28 }}
-          />
-          {/* Small grey dot in center */}
-          <div
-            className="relative z-10 rounded-full border-2 border-white/60"
-            style={{
-              width: 10,
-              height: 10,
-              background: '#64748b',
-              boxShadow: '0 0 0 2px #64748b33',
-            }}
-          />
-        </div>
-      </AdvancedMarker>
-    );
-  }
+  // ── Accuracy circle ──────────────────────────────────────────────
+  // Scale: at zoom ~18, 1 degree lat ≈ 111000m ≈ screen pixels varies.
+  // We use a CSS pixel size that's roughly proportional, capped for readability.
+  // At zoom 18: ~1m ≈ 0.6px → 10m≈6px, 100m≈60px, 2000m=cap at 240px
+  const accuracyCirclePx = Math.min(Math.max(accuracyMeters * 0.6, 32), 240);
 
-  // ── Normal state: accurate GPS — show full marker ─────────────────
+  // ── Dot size ────────────────────────────────────────────────────
+  const dotSize = isNavigating ? 22 : isApproximate ? 14 : 18;
+
+  // ── Pulse speed ─────────────────────────────────────────────────
+  const pulseSpeed = isWalking ? '0.9s' : isApproximate ? '3s' : '2s';
+
   return (
     <AdvancedMarker position={position} zIndex={200}>
+      {/* Outer container — AdvancedMarker anchors to center of this element */}
       <div
         className="relative flex items-center justify-center pointer-events-none"
         style={{ width: 80, height: 80 }}
       >
-        {/* GPS accuracy radius circle */}
+        {/* ── Large accuracy radius circle ─────────────────────── */}
         <div
           className="absolute rounded-full"
           style={{
-            width: accuracyCircleSize,
-            height: accuracyCircleSize,
-            background: `${dotColor}18`,
-            border: `1.5px solid ${dotColor}40`,
+            width: accuracyCirclePx,
+            height: accuracyCirclePx,
+            background: `${dotColor}${isApproximate ? '14' : '18'}`,
+            border: `1.5px solid ${dotColor}${isApproximate ? '55' : '40'}`,
+            // Dashed border for approximate location (>100m) like Google Maps
+            ...(isApproximate ? { borderStyle: 'dashed', borderWidth: '2px' } : {}),
           }}
         />
 
-        {/* Pulsing outer ring — always visible, faster when walking */}
+        {/* ── Pulsing outer ring ───────────────────────────────── */}
         <div
           className="absolute rounded-full animate-ping"
           style={{
@@ -110,12 +91,12 @@ export const UserLocationMarker: React.FC = () => {
             height: 36,
             background: `${dotColor}22`,
             border: `2px solid ${dotColor}55`,
-            animationDuration: isWalking ? '0.9s' : '2s',
+            animationDuration: pulseSpeed,
           }}
         />
 
-        {/* Direction heading cone — only when heading is available */}
-        {heading >= 0 && (
+        {/* ── Direction heading cone (only when we have heading) ── */}
+        {heading > 0 && tier !== 'POOR' && (
           <div
             className="absolute flex items-center justify-center"
             style={{
@@ -147,17 +128,18 @@ export const UserLocationMarker: React.FC = () => {
           </div>
         )}
 
-        {/* Core blue dot */}
+        {/* ── Core dot ─────────────────────────────────────────── */}
         <div
           className="relative z-10 rounded-full border-[3px] border-white flex items-center justify-center"
           style={{
-            width: isNavigating ? 22 : 18,
-            height: isNavigating ? 22 : 18,
+            width: dotSize,
+            height: dotSize,
             background: `radial-gradient(circle at 35% 35%, ${dotColor}ee, ${dotColor})`,
             boxShadow: `0 0 0 3px ${dotColor}33, 0 4px 16px ${dotColor}88`,
+            // Semi-transparent dot for approximate location (poor GPS)
+            opacity: isApproximate ? 0.75 : 1,
           }}
         >
-          {/* Inner gloss highlight */}
           <div
             className="rounded-full"
             style={{
@@ -167,6 +149,23 @@ export const UserLocationMarker: React.FC = () => {
             }}
           />
         </div>
+
+        {/* ── "Approximate location" label for poor GPS ────────── */}
+        {isApproximate && (
+          <div
+            className="absolute top-full mt-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-lg whitespace-nowrap z-20"
+            style={{
+              background: 'rgba(2,6,23,0.88)',
+              border: '1px solid rgba(148,163,184,0.3)',
+              backdropFilter: 'blur(8px)',
+              fontSize: '8px',
+              fontWeight: 700,
+              color: '#94a3b8',
+            }}
+          >
+            ≈ {Math.round(accuracyMeters)}m
+          </div>
+        )}
       </div>
     </AdvancedMarker>
   );

@@ -69,15 +69,38 @@ function renderVenueIcon(venue: Venue) {
   }
 }
 
-// ─── Detail Pins Threshold ───────────────────────────────────────────
+// ─── Zoom-based Visibility Tiers ────────────────────────────────────
+//
+//  < 15.5   → No markers at all (campus too zoomed-out, too cluttered)
+//  15.5–17  → Only PRIORITY venues (major buildings, ~6-8 pins)
+//  ≥ 17     → All venues (sub-rooms, detailed facilities)
+//
+const MIN_SHOW_ZOOM = 15.5;
+const ALL_VENUES_ZOOM = 17.0;
+
+// Priority venues shown at medium zoom (priority >= 7 OR manually listed)
+const PRIORITY_VENUE_IDS = new Set([
+  'v-admin-block-01',    // Admin Block
+  'v-acad-01',           // Academic Block 1
+  'v-acad-02',           // Academic Block 2
+  'v-hostel-01',         // Hostel
+  'v-food-01',           // Food Court
+  'v-sports-complex',    // Sports Complex
+  'v-clinic-01',         // Health Centre
+  'v-gate-05',           // Gate 5 Entrance
+  'v-main-gate',         // Main Gate
+  'v-creative-block-01', // Creative/Innovation Block
+]);
+
+// Sub-detail venues: only shown at high zoom (≥17.5)
 const DETAIL_VENUE_IDS = new Set([
-  'v-admis-room-01',     // Admissions Room G-02
-  'v-admin-cafe-01',     // Admin Cafeteria
-  'v-lib-01',            // Library
-  'v-audi-01',           // Auditorium
-  'v-sports-basketball',   // Basketball
-  'v-sports-badminton-out', // Outdoor Badminton
-  'v-sports-tennis',       // Tennis Court
+  'v-admis-room-01',
+  'v-admin-cafe-01',
+  'v-lib-01',
+  'v-audi-01',
+  'v-sports-basketball',
+  'v-sports-badminton-out',
+  'v-sports-tennis',
 ]);
 
 const DETAIL_ZOOM_THRESHOLD = 17.5;
@@ -101,9 +124,35 @@ const VenuePin: React.FC<{
   venue: Venue;
   isSelected: boolean;
   isDetailPin: boolean;
+  isCompact: boolean;  // compact = small circle icon at medium zoom
   onClick: () => void;
-}> = React.memo(({ venue, isSelected, isDetailPin, onClick }) => {
+}> = React.memo(({ venue, isSelected, isDetailPin, isCompact, onClick }) => {
   const cfg = getCfg(venue.category);
+
+  // ── Compact mode: small Google-Maps-style circle with icon ──────
+  if (isCompact && !isSelected) {
+    return (
+      <div
+        onClick={onClick}
+        className="relative flex flex-col items-center cursor-pointer select-none"
+        style={{ transform: 'translate(-50%, -50%)' }}
+      >
+        {/* Circle icon */}
+        <div
+          className="flex items-center justify-center rounded-full border-2 border-white shadow-lg"
+          style={{
+            width: 32,
+            height: 32,
+            background: cfg.bg,
+            boxShadow: `0 2px 8px ${cfg.glow}`,
+          }}
+        >
+          {renderVenueIcon(venue)}
+        </div>
+      </div>
+    );
+  }
+
   const pinW = isSelected ? 44 : isDetailPin ? 32 : 38;
   const pinH = isSelected ? 58 : isDetailPin ? 42 : 50;
 
@@ -112,7 +161,7 @@ const VenuePin: React.FC<{
       onClick={onClick}
       className="relative flex flex-col items-center cursor-pointer select-none"
       style={{
-        transform: 'translate(-50%, -100%)',
+        transform: isCompact ? 'translate(-50%, -50%)' : 'translate(-50%, -100%)',
         transformOrigin: 'bottom center',
         filter: isSelected
           ? `drop-shadow(0 6px 18px ${cfg.glow}) drop-shadow(0 0 8px ${cfg.ring}88)`
@@ -245,10 +294,37 @@ const LiveMapOverlay: React.FC = () => {
 
   if (!map) return null;
 
-  const showDetailPins = zoom >= DETAIL_ZOOM_THRESHOLD;
-  const visibleVenues = mockVenues.filter(v =>
-    showDetailPins ? true : !DETAIL_VENUE_IDS.has(v.id)
-  );
+  // ── Visibility tier based on zoom ────────────────────────────────
+  if (zoom < MIN_SHOW_ZOOM) {
+    // Zoomed too far out — render nothing except the route polyline
+    return (
+      <>
+        {activeRoute?.polyline && activeRoute.polyline.length > 1 && (
+          <>
+            <GoogleMapPolyline path={activeRoute.polyline} strokeColor="#FFFFFF" strokeWeight={10} strokeOpacity={0.6} />
+            <GoogleMapPolyline path={activeRoute.polyline} strokeColor="#1A73E8" strokeWeight={6} strokeOpacity={0.95} />
+            <GoogleMapPolyline path={activeRoute.polyline} strokeColor="#93C5FD" strokeWeight={2.5} strokeOpacity={0.7} />
+          </>
+        )}
+      </>
+    );
+  }
+
+  const isCompactZoom  = zoom >= MIN_SHOW_ZOOM && zoom < ALL_VENUES_ZOOM;  // 15.5–17
+  const showDetailPins = zoom >= DETAIL_ZOOM_THRESHOLD;                    // 17.5+
+
+  // Filter which venues to show
+  const visibleVenues = mockVenues.filter(v => {
+    if (isCompactZoom) {
+      // Medium zoom: only priority venues (no detail sub-rooms)
+      return PRIORITY_VENUE_IDS.has(v.id) || (v.priority ?? 0) >= 7;
+    }
+    if (!showDetailPins) {
+      // High zoom but below detail threshold: show all except sub-rooms
+      return !DETAIL_VENUE_IDS.has(v.id);
+    }
+    return true; // Detail zoom: show everything
+  });
 
   return (
     <>
@@ -266,6 +342,7 @@ const LiveMapOverlay: React.FC = () => {
         const isSelected = selectedVenue?.id === venue.id ||
           (activeRoute?.destinationBuildingId === venue.buildingId && activeRoute?.destinationBuildingId !== undefined);
         const isDetailPin = DETAIL_VENUE_IDS.has(venue.id);
+        const isCompact   = isCompactZoom && !isSelected;
 
         return (
           <AdvancedMarker
@@ -279,6 +356,7 @@ const LiveMapOverlay: React.FC = () => {
               venue={venue}
               isSelected={!!isSelected}
               isDetailPin={isDetailPin}
+              isCompact={isCompact}
               onClick={() => handleVenuePinClick(venue)}
             />
           </AdvancedMarker>

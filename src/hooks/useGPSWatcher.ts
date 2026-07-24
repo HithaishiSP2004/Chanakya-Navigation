@@ -8,38 +8,24 @@ import { snapToNearestEdge } from '@/utils/pathSnapping';
 import { SpatialEdge } from '@/types/navigation';
 import routingEdgesData from '@/gis/routing_edges.json';
 
-// Campus centroid and gate (fallback when user is far from campus)
+// Chanakya University campus centroid & main gate
 const CAMPUS_CENTROID = { lat: 13.2222, lng: 77.7554 };
 const CAMPUS_GATE     = { lat: 13.2219, lng: 77.7539 };
 const CAMPUS_RADIUS_METERS = 2500;
 
 /**
- * Maximum accuracy threshold to accept a GPS reading for map centering.
- * Mobile browsers often deliver the first 1-3 readings at ±100–300m from
- * a cached network position before GPS hardware locks on. We skip those.
- */
-const ACCURACY_THRESHOLD_METERS = 50;
-
-/**
- * Warm-up: skip this many inaccurate readings before trusting any position.
- * Set to 0 once accuracy is good enough.
- */
-const WARMUP_SKIP_COUNT = 3;
-
-/**
- * Fallback: if GPS never gets below ACCURACY_THRESHOLD_METERS within this
- * many milliseconds, use whatever we have (outdoor campus may still be ≈50m).
- */
-const ACCURACY_FALLBACK_MS = 8000;
-
-/**
- * useGPSWatcher — High-accuracy GPS tracker with:
- *  - Pre-fetch via getCurrentPosition before watchPosition (faster initial fix)
- *  - Warm-up skipping of inaccurate first readings (avoids ±100m cold-start lock)
- *  - Kalman filter smoothing (tuned Q=0.001 for pedestrian responsiveness)
- *  - Map centering only after accuracy < 50m (or 8s timeout)
- *  - Glitch detection: rejects >500m jumps
- *  - DeviceOrientation compass for heading cone
+ * useGPSWatcher — High-accuracy GPS tracker
+ *
+ * Strategy:
+ *  1. Pre-fetch with getCurrentPosition() for instant first fix
+ *  2. Continuous watchPosition() for live tracking
+ *  3. ALWAYS set userLocation on the very first reading (no warm-up skip)
+ *     — even a ±2000m reading shows a blue dot immediately
+ *     — Kalman filter smooths subsequent readings
+ *  4. Map centering gated: only center map when accuracy < 80m
+ *     (prevents jumping to a wrong city on first network-based fix)
+ *  5. 8-second fallback: if GPS never gets good, center on campus gate
+ *  6. Glitch detection: rejects >500m position jumps
  */
 export const useGPSWatcher = () => {
   const {
@@ -56,12 +42,14 @@ export const useGPSWatcher = () => {
   } = useGPSStore();
   const { setCenter, setZoom } = useMapStore();
 
-  // Track across readings without triggering re-renders
-  const warmupCountRef   = useRef(0);        // number of inaccurate readings skipped
-  const hasCenteredRef   = useRef(false);    // have we done the first map center?
+  const hasCenteredRef   = useRef(false);
   const fallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastPointRef     = useRef<{ lat: number; lng: number } | null>(null);
   const lastTimeRef      = useRef(Date.now());
+  const hasAnyFixRef     = useRef(false); // Did we get ANY position fix yet?
+
+  // Threshold for map auto-centering (not for showing the dot)
+  const CENTER_ACCURACY_THRESHOLD = 80;
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('geolocation' in navigator)) {
@@ -71,7 +59,6 @@ export const useGPSWatcher = () => {
 
     let retryTimeout: ReturnType<typeof setTimeout> | null = null;
 
-    // ── Core position handler ──────────────────────────────────────
     const handlePosition = (position: GeolocationPosition) => {
       const { latitude, longitude, accuracy, heading, speed } = position.coords;
       const now = Date.now();
@@ -79,46 +66,33 @@ export const useGPSWatcher = () => {
 
       setPermissionGranted(true);
       setRawLocation(rawPt);
-      setAccuracy(accuracy ?? 15);
+      setAccuracy(accuracy ?? 99);
 
       if (retryTimeout) { clearTimeout(retryTimeout); retryTimeout = null; }
 
-      // ── 1. Glitch detection: reject implausible jumps ────────────
+      // ── 1. Glitch rejection: ignore >500m jumps (GPS error/app resume) ──
       if (globalKalmanFilter.isGlitch(rawPt, 500)) {
-        // Large jump — likely GPS error or user resumed app after a trip
-        // Reset filter so it re-initialises cleanly from new position
         globalKalmanFilter.reset();
       }
 
-      // ── 2. Warm-up: skip first N readings if accuracy is poor ────
-      //    Mobile often delivers a ±200m "cached" network fix first.
-      //    We count bad readings and only start trusting GPS after either:
-      //      (a) N bad readings have been skipped, or
-      //      (b) accuracy has reached an acceptable level
-      const isAccurate = (accuracy ?? 999) <= ACCURACY_THRESHOLD_METERS;
-      if (!isAccurate && warmupCountRef.current < WARMUP_SKIP_COUNT) {
-        warmupCountRef.current++;
-        // Still feed to signal quality display so UI can show "acquiring"
-        const { quality, confidenceScore } = GPSKalmanFilter.evaluateSignal(accuracy ?? 999);
-        setSignalQuality(quality);
-        setConfidenceScore(confidenceScore);
-        return; // Skip this reading for positioning
-      }
-
-      // ── 3. Kalman filter smoothing ───────────────────────────────
-      const smoothedPt = globalKalmanFilter.filter(rawPt, accuracy ?? 15, now);
+      // ── 2. Kalman filter — always process EVERY reading ─────────────
+      //    No warm-up skip. The filter handles bad readings gracefully.
+      //    This ensures userLocation is set from the very first reading
+      //    so the blue dot appears immediately.
+      const smoothedPt = globalKalmanFilter.filter(rawPt, accuracy ?? 99, now);
       setUserLocation(smoothedPt);
+      hasAnyFixRef.current = true;
 
-      // ── 4. Walkway edge snapping (for routing — not for display) ─
+      // ── 3. Walkway edge snapping (routing use only, not display) ────
       const snappedPt = snapToNearestEdge(smoothedPt, routingEdgesData as SpatialEdge[], 20);
       setSnappedLocation(snappedPt);
 
-      // ── 5. Signal quality evaluation ────────────────────────────
-      const { quality, confidenceScore } = GPSKalmanFilter.evaluateSignal(accuracy ?? 15);
+      // ── 4. Signal quality ────────────────────────────────────────────
+      const { quality, confidenceScore } = GPSKalmanFilter.evaluateSignal(accuracy ?? 99);
       setSignalQuality(quality);
       setConfidenceScore(confidenceScore);
 
-      // ── 6. Speed & walking detection ────────────────────────────
+      // ── 5. Speed & movement detection ───────────────────────────────
       let currentSpeed = (speed !== null && !isNaN(speed)) ? speed : 0;
       if (lastPointRef.current && currentSpeed === 0) {
         const deltaD = GPSKalmanFilter.calculateDistance(lastPointRef.current, rawPt);
@@ -133,13 +107,15 @@ export const useGPSWatcher = () => {
       setSpeedMps(Math.round(currentSpeed * 10) / 10);
       setMovementState(isWalking, isStationary);
 
-      // ── 7. Compass heading ───────────────────────────────────────
+      // ── 6. Compass heading ───────────────────────────────────────────
       if (heading !== null && !isNaN(heading)) {
         setHeading(heading);
       }
 
-      // ── 8. First accurate fix → center map on user's position ───
-      if (!hasCenteredRef.current && isAccurate) {
+      // ── 7. Map centering — only once GPS is reasonably accurate ──────
+      //    We don't center on a ±2000m reading to avoid jumping far away.
+      //    The blue dot still shows (step 2 above), just the map won't jump.
+      if (!hasCenteredRef.current && (accuracy ?? 999) <= CENTER_ACCURACY_THRESHOLD) {
         hasCenteredRef.current = true;
         if (fallbackTimerRef.current) {
           clearTimeout(fallbackTimerRef.current);
@@ -150,7 +126,6 @@ export const useGPSWatcher = () => {
           setCenter(smoothedPt);
           setZoom(19);
         } else {
-          // User is off-campus (e.g. opened app from home) — show campus overview
           setCenter(CAMPUS_GATE);
           setZoom(17);
         }
@@ -161,7 +136,6 @@ export const useGPSWatcher = () => {
       if (error.code === error.PERMISSION_DENIED) {
         setPermissionGranted(false);
       } else if (error.code === error.TIMEOUT) {
-        // Retry with a quick getCurrentPosition burst
         retryTimeout = setTimeout(() => {
           navigator.geolocation.getCurrentPosition(handlePosition, () => {}, {
             enableHighAccuracy: true,
@@ -173,9 +147,7 @@ export const useGPSWatcher = () => {
       console.warn(`GPS [code=${error.code}]:`, error.message);
     };
 
-    // ── Step A: Pre-fetch with getCurrentPosition for fastest first fix ──
-    // This fires a single high-accuracy request immediately, which the OS
-    // often fulfils faster than watchPosition's first callback.
+    // ── Step A: Immediate pre-fetch for fastest first fix ────────────
     navigator.geolocation.getCurrentPosition(handlePosition, () => {}, {
       enableHighAccuracy: true,
       timeout: 10000,
@@ -185,11 +157,11 @@ export const useGPSWatcher = () => {
     // ── Step B: Continuous watchPosition for live tracking ────────────
     const watchId = navigator.geolocation.watchPosition(handlePosition, handleError, {
       enableHighAccuracy: true,
-      timeout: 10000,       // Shorter than before (was 20s) — retries faster
-      maximumAge: 0,        // Always fresh — never use cached stale position
+      timeout: 10000,
+      maximumAge: 0,
     });
 
-    // ── Fallback timer: if accuracy never gets good in 8s, use whatever we have ──
+    // ── Fallback: center map on campus gate after 8s if GPS still bad ──
     fallbackTimerRef.current = setTimeout(() => {
       if (!hasCenteredRef.current) {
         hasCenteredRef.current = true;
@@ -203,7 +175,7 @@ export const useGPSWatcher = () => {
           setZoom(17);
         }
       }
-    }, ACCURACY_FALLBACK_MS);
+    }, 8000);
 
     // ── Device Compass for heading cone ──────────────────────────────
     const handleOrientation = (event: DeviceOrientationEvent) => {
@@ -212,10 +184,8 @@ export const useGPSWatcher = () => {
         'webkitCompassHeading' in event &&
         typeof (event as unknown as { webkitCompassHeading: number }).webkitCompassHeading === 'number'
       ) {
-        // iOS Safari
         compassHeading = (event as unknown as { webkitCompassHeading: number }).webkitCompassHeading;
       } else if (event.alpha !== null) {
-        // Android
         compassHeading = (360 - event.alpha) % 360;
       }
       if (compassHeading !== null && !isNaN(compassHeading)) {

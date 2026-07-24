@@ -85,11 +85,15 @@ export const PlaceDetailSheet: React.FC = () => {
     if (!userLocation) {
       // No GPS at all — use campus gate as default origin
       origin = { lat: 13.2219, lng: 77.7539 };
+    } else if (accuracyMeters > 100) {
+      // GPS very weak (>100m — likely network/IP location) — route from campus gate.
+      // This is the most accurate default for visitors entering the campus.
+      origin = { lat: 13.2219, lng: 77.7539 };
     } else if (accuracyMeters > 20 && snappedLocation) {
-      // GPS weak — use walkway-snapped position for accurate route start
+      // GPS moderate (20–100m) — use walkway-snapped position for accurate route start
       origin = snappedLocation;
     } else {
-      // GPS is accurate — use the real smoothed position
+      // GPS accurate (≤20m) — use the real smoothed position
       origin = userLocation;
     }
 
@@ -384,7 +388,7 @@ export const PlaceDetailSheet: React.FC = () => {
 
 
       {/* GPS Accuracy Warning — shown when signal is too weak for precise routing */}
-      {userLocation && accuracyMeters > 40 && (
+      {userLocation && accuracyMeters > 100 && (
         <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-950/60 border border-amber-600/50 text-amber-300 text-[11px]">
           <span className="relative flex shrink-0">
             <span className="animate-ping absolute inline-flex h-2.5 w-2.5 rounded-full bg-amber-400 opacity-75" />
