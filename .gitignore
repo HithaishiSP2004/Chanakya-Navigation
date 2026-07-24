@@ -14,6 +14,11 @@
 # Backend (ignored for pure Next.js Vercel deployment)
 /backend
 
+# Docker files (only for local development, not needed on Vercel)
+Dockerfile
+docker-compose.yml
+nginx.conf
+
 # Environment variables & secrets (CRITICAL: DO NOT COMMIT REAL KEYS)
 .env
 .env.local
