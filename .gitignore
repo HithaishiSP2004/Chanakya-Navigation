@@ -11,6 +11,9 @@
 # TypeScript build info
 *.tsbuildinfo
 
+# Backend (ignored for pure Next.js Vercel deployment)
+/backend
+
 # Environment variables & secrets (CRITICAL: DO NOT COMMIT REAL KEYS)
 .env
 .env.local
