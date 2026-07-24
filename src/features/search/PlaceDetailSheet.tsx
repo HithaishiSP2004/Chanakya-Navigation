@@ -34,7 +34,7 @@ import { useJourneyStore } from '@/stores/useJourneyStore';
 
 export const PlaceDetailSheet: React.FC = () => {
   const { selectedVenue, setSelectedVenue, setActiveRoute, setMode, setSheetSnapPoint } = useNavigationStore();
-  const { userLocation } = useGPSStore();
+  const { userLocation, snappedLocation, accuracyMeters } = useGPSStore();
   const { setActiveTab } = useUIStore();
   const { isFavorite, toggleFavorite } = useFavoritesStore();
   const { addVisitedVenue, setUnfinishedVenue } = useJourneyStore();
@@ -72,12 +72,29 @@ export const PlaceDetailSheet: React.FC = () => {
     addVisitedVenue(selectedVenue);
     setUnfinishedVenue(selectedVenue);
 
-    // Use gate centroid if user hasn't granted GPS yet
-    const origin = userLocation || { lat: 13.2219, lng: 77.7539 };
+    // ── Smart origin selection ────────────────────────────────────────
+    // When GPS accuracy is poor (>20m), the raw userLocation can be 50-100m off.
+    // Use the walkway-snapped location instead — it's constrained to the routing
+    // graph and will always produce a valid route start node.
+    //
+    // Priority:
+    //  1. snappedLocation (if GPS exists and accuracy > 20m) — on the walkway graph
+    //  2. userLocation (if GPS is accurate ≤ 20m) — direct user position
+    //  3. Campus gate centroid (fallback if no GPS at all)
+    let origin: { lat: number; lng: number };
+    if (!userLocation) {
+      // No GPS at all — use campus gate as default origin
+      origin = { lat: 13.2219, lng: 77.7539 };
+    } else if (accuracyMeters > 20 && snappedLocation) {
+      // GPS weak — use walkway-snapped position for accurate route start
+      origin = snappedLocation;
+    } else {
+      // GPS is accurate — use the real smoothed position
+      origin = userLocation;
+    }
 
     setIsCalculatingRoute(true);
     try {
-      // Async: tries Google Directions API first, falls back to Dijkstra
       const route = await NavigationRepository.calculateRouteAsync(origin, selectedVenue.id);
       if (route) {
         setActiveRoute(route);
@@ -365,6 +382,19 @@ export const PlaceDetailSheet: React.FC = () => {
         </div>
       )}
 
+
+      {/* GPS Accuracy Warning — shown when signal is too weak for precise routing */}
+      {userLocation && accuracyMeters > 40 && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-950/60 border border-amber-600/50 text-amber-300 text-[11px]">
+          <span className="relative flex shrink-0">
+            <span className="animate-ping absolute inline-flex h-2.5 w-2.5 rounded-full bg-amber-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
+          </span>
+          <span>
+            <strong>GPS acquiring</strong> (±{Math.round(accuracyMeters)}m) — Route will start from nearest walkway. Step outside for better accuracy.
+          </span>
+        </div>
+      )}
 
       {/* CTA Buttons */}
       <div className="grid grid-cols-3 gap-2.5">
